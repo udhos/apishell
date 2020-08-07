@@ -58,6 +58,7 @@ type response struct {
 	HttpStatus int
 	ExitStatus int
 	Output     string
+	Error      string
 }
 
 func serveAPIv1Exec(w http.ResponseWriter, r *http.Request, app *server) {
@@ -103,19 +104,20 @@ func serveAPIv1Exec(w http.ResponseWriter, r *http.Request, app *server) {
 		log.Printf("serveAPIv1Exec: url=%s from=%s error: %v", r.URL.Path, r.RemoteAddr, errExec)
 
 		//http.Error(w, serverError+": "+errExec.Error(), 500)
-		sendResponse(w, 500, exitStatus, out, sendYaml)
+		sendResponse(w, 500, exitStatus, out, errExec.Error(), sendYaml)
 		return
 	}
 
 	//writeBuf("serveAPIv1Exec", w, out)
-	sendResponse(w, 200, 0, out, sendYaml)
+	sendResponse(w, 200, 0, out, "", sendYaml)
 }
 
-func sendResponse(w http.ResponseWriter, httpStatus int, exitStatus int, output []byte, sendYaml bool) {
+func sendResponse(w http.ResponseWriter, httpStatus int, exitStatus int, output []byte, execError string, sendYaml bool) {
 	var result response
 	result.HttpStatus = httpStatus
 	result.ExitStatus = exitStatus
 	result.Output = string(output)
+	result.Error = execError
 
 	if sendYaml {
 		buf, errMarshal := yaml.Marshal(&result)
