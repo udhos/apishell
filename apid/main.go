@@ -39,12 +39,18 @@ func main() {
 	flag.StringVar(&app.basicAuthPass, "basicAuthPass", "admin", "basic auth password")
 	flag.Parse()
 
+	registerAPI(&app, "/", serveRoot)
 	registerAPI(&app, "/api/", serveAPI)
 
 	registerStatic(&app, "/static/", ".")
 
-	log.Printf("serving HTTPS on TCP %s", listen)
-	if err := http.ListenAndServeTLS(listen, cert, key, nil); err != nil {
+	if err := listenAndServeTLS(listen, cert, key, nil); err != nil {
 		log.Fatalf("ListenAndServeTLS: %s: %v", listen, err)
 	}
+}
+
+func listenAndServeTLS(listen, certFile, keyFile string, handler http.Handler) error {
+	server := &http.Server{Addr: listen, Handler: handler}
+	log.Printf("listenAndServeTLS: serving HTTPS on TCP %s", listen)
+	return server.ListenAndServeTLS(certFile, keyFile)
 }
