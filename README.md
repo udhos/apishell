@@ -9,9 +9,18 @@ Run commands using APIs.
 
     apid
 
-    curl -k -u admin:admin https://localhost:8080/api/
-
     curl -k -u admin:admin https://localhost:8080/static/
+
+    '{"args":["ls","-al"]}'
+
+    curl -k -u admin:admin -d '{"args":["ls","-al"]}' https://localhost:8080/api/v1/exec/
+
+    $ cat ls.yaml
+    args:
+    - ls
+    - /tmp
+
+    curl -k -u admin:admin --data-binary @ls.yaml https://localhost:8080/api/v1/exec/
 
     
 

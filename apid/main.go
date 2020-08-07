@@ -41,10 +41,10 @@ func main() {
 	flag.StringVar(&staticDir, "staticDir", ".", "static dir")
 	flag.Parse()
 
-	registerAPI(&app, "/", serveRoot)
-	registerAPI(&app, "/api/", serveAPI)
-
 	registerStatic(&app, staticPath, staticDir)
+
+	registerAPI(&app, "/", serveRoot)
+	registerAPI(&app, "/api/v1/exec/", serveAPIv1Exec)
 
 	if err := listenAndServeTLS(listen, cert, key, nil); err != nil {
 		log.Fatalf("ListenAndServeTLS: %s: %v", listen, err)
