@@ -25,8 +25,9 @@ func registerAPI(app *server, path string, handler apiHandler) {
 }
 
 func serveRoot(w http.ResponseWriter, r *http.Request, app *server) {
-	log.Printf("serveRoot: url=%s from=%s", r.URL.Path, r.RemoteAddr)
-	http.Error(w, "404 Nothing here", 404)
+	notFound := "404 Nothing here"
+	log.Printf("serveRoot: url=%s from=%s %s", r.URL.Path, r.RemoteAddr, notFound)
+	http.Error(w, notFound, 404)
 }
 
 func serveAPI(w http.ResponseWriter, r *http.Request, app *server) {

@@ -29,20 +29,22 @@ func main() {
 	log.Printf("%s: version=%s runtime=%s GOMAXPROCS=%d ARCH=%s OS=%s", me, version, runtime.Version(), runtime.GOMAXPROCS(0), runtime.GOARCH, runtime.GOOS)
 
 	var app server
-
 	var key, cert, listen string
+	var staticPath, staticDir string
 
 	flag.StringVar(&key, "key", "key.pem", "TLS key file")
 	flag.StringVar(&cert, "cert", "cert.pem", "TLS cert file")
 	flag.StringVar(&listen, "listen", ":8080", "listen address")
 	flag.StringVar(&app.basicAuthUser, "basicAuthUser", "admin", "basic auth username")
 	flag.StringVar(&app.basicAuthPass, "basicAuthPass", "admin", "basic auth password")
+	flag.StringVar(&staticPath, "staticPath", "/static/", "static path")
+	flag.StringVar(&staticDir, "staticDir", ".", "static dir")
 	flag.Parse()
 
 	registerAPI(&app, "/", serveRoot)
 	registerAPI(&app, "/api/", serveAPI)
 
-	registerStatic(&app, "/static/", ".")
+	registerStatic(&app, staticPath, staticDir)
 
 	if err := listenAndServeTLS(listen, cert, key, nil); err != nil {
 		log.Fatalf("ListenAndServeTLS: %s: %v", listen, err)
