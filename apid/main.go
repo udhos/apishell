@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"runtime"
+	"sync"
 )
 
 const (
@@ -15,6 +16,13 @@ const (
 type server struct {
 	basicAuthUser string
 	basicAuthPass string
+	lock          sync.RWMutex
+}
+
+func (s *server) auth(user, pass string) bool {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+	return user == s.basicAuthUser && pass == s.basicAuthPass
 }
 
 func main() {
@@ -27,6 +35,8 @@ func main() {
 	flag.StringVar(&key, "key", "key.pem", "TLS key file")
 	flag.StringVar(&cert, "cert", "cert.pem", "TLS cert file")
 	flag.StringVar(&listen, "listen", ":8080", "listen address")
+	flag.StringVar(&app.basicAuthUser, "basicAuthUser", "admin", "basic auth username")
+	flag.StringVar(&app.basicAuthPass, "basicAuthPass", "admin", "basic auth password")
 	flag.Parse()
 
 	registerAPI(&app, "/api/", serveAPI)

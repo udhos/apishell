@@ -9,9 +9,9 @@ Run commands using APIs.
 
     apid
 
-    curl -k https://localhost:8080/api/
+    curl -k -u admin:admin https://localhost:8080/api/
 
-    curl -k https://localhost:8080/static/
+    curl -k -u admin:admin https://localhost:8080/static/
 
     
 
