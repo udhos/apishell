@@ -4,7 +4,7 @@ import (
 	"log"
 	"runtime"
 
-	"github/udhos/apishell/apictl/cmd"
+	"github.com/udhos/apishell/apictl/cmd"
 )
 
 const (
