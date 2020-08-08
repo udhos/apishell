@@ -1,17 +1,21 @@
 # apishell
 Run commands using APIs.
 
+# Install
+
+Make sure you have a working Go installation.
+
+    https://github.com/udhos/apishell
+    cd apishell
+    go install ./...
+
 # Quick Start
 
     openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout key.pem -out cert.pem
 
-    ./build.sh
-
     apid
 
     curl -k -u admin:admin https://localhost:8080/static/
-
-    '{"args":["ls","-al"]}'
 
     curl -k -u admin:admin -d '{"args":["ls","-al"]}' https://localhost:8080/api/v1/exec/
 
