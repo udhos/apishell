@@ -16,6 +16,7 @@ const (
 type server struct {
 	basicAuthUser string
 	basicAuthPass string
+	count         uint64
 	lock          sync.RWMutex
 }
 
@@ -23,6 +24,13 @@ func (s *server) auth(user, pass string) bool {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 	return user == s.basicAuthUser && pass == s.basicAuthPass
+}
+
+func (s *server) next() uint64 {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	s.count++
+	return s.count
 }
 
 func main() {

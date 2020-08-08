@@ -11,9 +11,12 @@ type httpHandler struct {
 }
 
 func (h httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	log.Printf("staticHandler.ServeHTTP url=%s from=%s", r.URL.Path, r.RemoteAddr)
 
-	if badBasicAuth("staticHandler.ServeHTTP", w, r, h.app) {
+	id := h.app.next()
+
+	log.Printf("%d staticHandler.ServeHTTP url=%s from=%s", id, r.URL.Path, r.RemoteAddr)
+
+	if badBasicAuth("staticHandler.ServeHTTP", id, w, r, h.app) {
 		return
 	}
 
