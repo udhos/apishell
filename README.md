@@ -26,6 +26,9 @@ Make sure you have a working Go installation.
 
     curl -k -u admin:admin --data-binary @ls.yaml https://localhost:8080/api/v1/exec/
 
+    # Below 'aGVsbG8K' is 'hello' encoded in base64
+    curl -k -u admin:admin -d '{"args":["cat"],"stdin":"aGVsbG8K"}' https://localhost:8080/api/v1/exec/
+
     
 
 

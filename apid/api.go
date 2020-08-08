@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -51,11 +52,12 @@ func serveRoot(w http.ResponseWriter, r *http.Request, app *server) {
 }
 
 type v1ExecPayload struct {
-	Args []string
+	Stdin string
+	Args  []string
 }
 
 type response struct {
-	HttpStatus int
+	HTTPStatus int
 	ExitStatus int
 	Output     string
 	Error      string
@@ -90,6 +92,31 @@ func serveAPIv1Exec(w http.ResponseWriter, r *http.Request, app *server) {
 	}
 
 	cmd := exec.Command(payload.Args[0], payload.Args[1:]...)
+
+	if len(payload.Stdin) > 0 {
+		data, errDecode := base64.StdEncoding.DecodeString(payload.Stdin)
+		if errDecode != nil {
+			log.Printf("serveAPIv1Exec: url=%s from=%s stdin decode: %v", r.URL.Path, r.RemoteAddr, errDecode)
+			http.Error(w, "400 stdin decode", 500)
+			return
+		}
+
+		stdin, errStdinPipe := cmd.StdinPipe()
+		if errStdinPipe != nil {
+			log.Printf("serveAPIv1Exec: url=%s from=%s cmd stdin: %v", r.URL.Path, r.RemoteAddr, errStdinPipe)
+			http.Error(w, "500 command input", 500)
+			return
+		}
+
+		go func() {
+			defer stdin.Close()
+			n, errWrite := stdin.Write(data)
+			if errWrite != nil {
+				log.Printf("serveAPIv1Exec: url=%s from=%s cmd stdin write len=%d: %v", r.URL.Path, r.RemoteAddr, n, errWrite)
+			}
+		}()
+	}
+
 	out, errExec := cmd.CombinedOutput()
 	if errExec != nil {
 
@@ -112,9 +139,9 @@ func serveAPIv1Exec(w http.ResponseWriter, r *http.Request, app *server) {
 	sendResponse(w, 200, 0, out, "", sendYaml)
 }
 
-func sendResponse(w http.ResponseWriter, httpStatus int, exitStatus int, output []byte, execError string, sendYaml bool) {
+func sendResponse(w http.ResponseWriter, HTTPStatus int, exitStatus int, output []byte, execError string, sendYaml bool) {
 	var result response
-	result.HttpStatus = httpStatus
+	result.HTTPStatus = HTTPStatus
 	result.ExitStatus = exitStatus
 	result.Output = string(output)
 	result.Error = execError
@@ -125,7 +152,7 @@ func sendResponse(w http.ResponseWriter, httpStatus int, exitStatus int, output 
 			log.Printf("sendResponse yaml.Marshal: %v", errMarshal)
 		}
 		w.Header().Set("Content-Type", "application/x-yaml")
-		httpError(w, string(buf), httpStatus)
+		httpError(w, string(buf), HTTPStatus)
 		return
 	}
 
@@ -134,7 +161,7 @@ func sendResponse(w http.ResponseWriter, httpStatus int, exitStatus int, output 
 		log.Printf("sendResponse json.Marshal: %v", errMarshal)
 	}
 	w.Header().Set("Content-Type", "application/json")
-	httpError(w, string(buf), httpStatus)
+	httpError(w, string(buf), HTTPStatus)
 }
 
 // httpError does not reset Content-Type, http.Error does.
