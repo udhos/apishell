@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os/exec"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 
@@ -56,20 +57,6 @@ func serveRoot(w http.ResponseWriter, r *http.Request, app *server, id uint64) {
 	http.Error(w, notFound, 404)
 }
 
-/*
-type v1ExecPayload struct {
-	Stdin string
-	Args  []string
-}
-
-type response struct {
-	HTTPStatus int
-	ExitStatus int
-	Output     string
-	Error      string
-}
-*/
-
 func serveAPIExecV1(w http.ResponseWriter, r *http.Request, app *server, id uint64) {
 	me := "serveAPIExecV1"
 
@@ -102,12 +89,22 @@ func serveAPIExecV1(w http.ResponseWriter, r *http.Request, app *server, id uint
 
 	cmd := exec.Command(payload.Args[0], payload.Args[1:]...)
 
-	if len(payload.Stdin) > 0 {
-		data, errDecode := base64.StdEncoding.DecodeString(payload.Stdin)
-		if errDecode != nil {
-			log.Printf("%d %s: url=%s from=%s stdin decode: %v", id, me, r.URL.Path, r.RemoteAddr, errDecode)
-			http.Error(w, "400 stdin decode", 500)
-			return
+	if payload.Stdin != "" {
+		var data []byte
+
+		if strings.HasPrefix(payload.Stdin, api.PrefixBase64) {
+			// prefixed with base64: encoded
+			s := payload.Stdin[len(api.PrefixBase64):]
+			d, errDecode := base64.StdEncoding.DecodeString(s)
+			if errDecode != nil {
+				log.Printf("%d %s: url=%s from=%s stdin decode: %v", id, me, r.URL.Path, r.RemoteAddr, errDecode)
+				http.Error(w, "400 stdin decode", 500)
+				return
+			}
+			data = d
+		} else {
+			// not encoded
+			data = []byte(payload.Stdin)
 		}
 
 		stdin, errStdinPipe := cmd.StdinPipe()

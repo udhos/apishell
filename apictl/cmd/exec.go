@@ -49,9 +49,9 @@ apictl exec -- bash -c "echo -n 12345 | wc"
 					fmt.Printf("stdin: %s: %v\n", execStdin, errRead)
 					return
 				}
-				body.Stdin = base64.StdEncoding.EncodeToString(data)
+				body.Stdin = api.PrefixBase64 + base64.StdEncoding.EncodeToString(data)
 			} else {
-				body.Stdin = base64.StdEncoding.EncodeToString([]byte(execStdin))
+				body.Stdin = api.PrefixBase64 + base64.StdEncoding.EncodeToString([]byte(execStdin))
 			}
 		}
 
