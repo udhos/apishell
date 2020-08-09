@@ -43,8 +43,11 @@ apictl exec -- bash -c "echo -n 12345 | wc"
 
 		errlog := log.New(os.Stderr, "", 0)
 
-		url := "https://localhost:8080" + api.ExecV1Path
-		errlog.Printf("apid: %s", url)
+		host := "localhost:8080"
+		errlog.Printf("apid host: %s", host)
+
+		url := "https://" + host + api.ExecV1Path
+		errlog.Printf("exec url: %s", url)
 
 		var body api.ExecV1RequestBody
 		body.Args = args
