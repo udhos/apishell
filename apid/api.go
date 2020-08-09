@@ -141,6 +141,8 @@ func serveAPIExecV1(w http.ResponseWriter, r *http.Request, app *server, id uint
 }
 
 func sendResponse(w http.ResponseWriter, HTTPStatus int, exitStatus int, output []byte, execError string, sendYaml bool, id uint64) {
+	me := "sendResponse"
+
 	var result api.ExecV1ResponseBody
 	result.HTTPStatus = HTTPStatus
 	result.ExitStatus = exitStatus
@@ -152,7 +154,7 @@ func sendResponse(w http.ResponseWriter, HTTPStatus int, exitStatus int, output 
 	if sendYaml {
 		buf, errMarshal := yaml.Marshal(&result)
 		if errMarshal != nil {
-			log.Printf("%d sendResponse yaml.Marshal: %v", id, errMarshal)
+			log.Printf("%d %s yaml.Marshal: %v", id, me, errMarshal)
 		}
 		w.Header().Set("Content-Type", "application/x-yaml")
 		httpError(w, string(buf), HTTPStatus)
@@ -161,10 +163,13 @@ func sendResponse(w http.ResponseWriter, HTTPStatus int, exitStatus int, output 
 
 	buf, errMarshal := json.Marshal(&result)
 	if errMarshal != nil {
-		log.Printf("%d sendResponse json.Marshal: %v", id, errMarshal)
+		log.Printf("%d %s json.Marshal: %v", id, me, errMarshal)
 	}
 	w.Header().Set("Content-Type", "application/json")
+
+	log.Printf("%d %s writing response bodyLength=%d...", id, me, len(buf))
 	httpError(w, string(buf), HTTPStatus)
+	log.Printf("%d %s writing response bodyLength=%d...done", id, me, len(buf))
 }
 
 // httpError does not reset Content-Type, http.Error does.

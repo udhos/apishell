@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -61,6 +62,7 @@ apictl exec -- bash -c "echo -n 12345 | wc"
 		encoder := json.NewEncoder(&buf)
 		if errEnc := encoder.Encode(&body); errEnc != nil {
 			fmt.Printf("encode json: %v\n", errEnc)
+			return
 		}
 
 		//fmt.Printf("request body: %s\n", buf.String())
@@ -92,8 +94,7 @@ apictl exec -- bash -c "echo -n 12345 | wc"
 			return
 		}
 
-		fmt.Printf("body length: %d\n", len(respBody))
-		//fmt.Printf("body: %s\n", respBody)
+		fmt.Fprintf(os.Stderr, "Body Length: %d\n", len(respBody))
 
 		var result api.ExecV1ResponseBody
 
@@ -104,10 +105,9 @@ apictl exec -- bash -c "echo -n 12345 | wc"
 
 		//fmt.Printf("result: %v\n", result)
 
-		fmt.Printf("HTTPStatus: %d\n", result.HTTPStatus)
-		fmt.Printf("ExitStatus: %d\n", result.ExitStatus)
-		fmt.Printf("Error: %s\n", result.Error)
-		fmt.Println("Output:")
+		fmt.Fprintf(os.Stderr, "HTTPStatus: %d\n", result.HTTPStatus)
+		fmt.Fprintf(os.Stderr, "ExitStatus: %d\n", result.ExitStatus)
+		fmt.Fprintf(os.Stderr, "Error: %s\n", result.Error)
 
 		var output string
 
