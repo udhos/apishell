@@ -15,8 +15,8 @@ var cfgFile string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "apictl",
-	Short: "Run commands against apid, apishell server.",
-	Long: `Run commands against apid, apishell server.
+	Short: "Run commands against apid, the apishell server.",
+	Long: `Run commands against apid, the apishell server.
 
 For example:
 

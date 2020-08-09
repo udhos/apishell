@@ -11,6 +11,8 @@ import (
 	"os/exec"
 
 	"gopkg.in/yaml.v2"
+
+	"github.com/udhos/apishell/api"
 )
 
 type apiHandler func(w http.ResponseWriter, r *http.Request, app *server, id uint64)
@@ -54,6 +56,7 @@ func serveRoot(w http.ResponseWriter, r *http.Request, app *server, id uint64) {
 	http.Error(w, notFound, 404)
 }
 
+/*
 type v1ExecPayload struct {
 	Stdin string
 	Args  []string
@@ -65,9 +68,12 @@ type response struct {
 	Output     string
 	Error      string
 }
+*/
 
-func serveAPIv1Exec(w http.ResponseWriter, r *http.Request, app *server, id uint64) {
-	log.Printf("%d serveAPIv1Exec: url=%s from=%s", id, r.URL.Path, r.RemoteAddr)
+func serveAPIExecV1(w http.ResponseWriter, r *http.Request, app *server, id uint64) {
+	me := "serveAPIExecV1"
+
+	log.Printf("%d %s: url=%s from=%s", id, me, r.URL.Path, r.RemoteAddr)
 
 	sendYaml := false
 
@@ -75,21 +81,21 @@ func serveAPIv1Exec(w http.ResponseWriter, r *http.Request, app *server, id uint
 
 	body, errRead := ioutil.ReadAll(r.Body)
 	if errRead != nil {
-		log.Printf("%d serveAPIv1Exec: url=%s from=%s body: %v", id, r.URL.Path, r.RemoteAddr, errRead)
+		log.Printf("%d %s: url=%s from=%s body: %v", id, me, r.URL.Path, r.RemoteAddr, errRead)
 		http.Error(w, badBody, 400)
 		return
 	}
 
-	var payload v1ExecPayload
+	var payload api.ExecV1RequestBody
 
 	if errYaml := yaml.Unmarshal(body, &payload); errYaml != nil {
-		log.Printf("%d serveAPIv1Exec: url=%s from=%s body: %v", id, r.URL.Path, r.RemoteAddr, errYaml)
+		log.Printf("%d %s: url=%s from=%s body: %v", id, me, r.URL.Path, r.RemoteAddr, errYaml)
 		http.Error(w, badBody, 400)
 		return
 	}
 
 	if len(payload.Args) < 1 {
-		log.Printf("%d serveAPIv1Exec: url=%s from=%s empty args list", id, r.URL.Path, r.RemoteAddr)
+		log.Printf("%d %s: url=%s from=%s empty args list", id, me, r.URL.Path, r.RemoteAddr)
 		http.Error(w, badBody, 400)
 		return
 	}
@@ -99,14 +105,14 @@ func serveAPIv1Exec(w http.ResponseWriter, r *http.Request, app *server, id uint
 	if len(payload.Stdin) > 0 {
 		data, errDecode := base64.StdEncoding.DecodeString(payload.Stdin)
 		if errDecode != nil {
-			log.Printf("%d serveAPIv1Exec: url=%s from=%s stdin decode: %v", id, r.URL.Path, r.RemoteAddr, errDecode)
+			log.Printf("%d %s: url=%s from=%s stdin decode: %v", id, me, r.URL.Path, r.RemoteAddr, errDecode)
 			http.Error(w, "400 stdin decode", 500)
 			return
 		}
 
 		stdin, errStdinPipe := cmd.StdinPipe()
 		if errStdinPipe != nil {
-			log.Printf("%d serveAPIv1Exec: url=%s from=%s cmd stdin: %v", id, r.URL.Path, r.RemoteAddr, errStdinPipe)
+			log.Printf("%d %s: url=%s from=%s cmd stdin: %v", id, me, r.URL.Path, r.RemoteAddr, errStdinPipe)
 			http.Error(w, "500 command input", 500)
 			return
 		}
@@ -115,7 +121,7 @@ func serveAPIv1Exec(w http.ResponseWriter, r *http.Request, app *server, id uint
 			defer stdin.Close()
 			n, errWrite := stdin.Write(data)
 			if errWrite != nil {
-				log.Printf("%d serveAPIv1Exec: url=%s from=%s cmd stdin write len=%d: %v", id, r.URL.Path, r.RemoteAddr, n, errWrite)
+				log.Printf("%d %s: url=%s from=%s cmd stdin write len=%d: %v", id, me, r.URL.Path, r.RemoteAddr, n, errWrite)
 			}
 		}()
 	}
@@ -128,7 +134,7 @@ func serveAPIv1Exec(w http.ResponseWriter, r *http.Request, app *server, id uint
 			exitStatus = t.ExitCode()
 		}
 
-		log.Printf("%d serveAPIv1Exec: url=%s from=%s error: %v", id, r.URL.Path, r.RemoteAddr, errExec)
+		log.Printf("%d %s: url=%s from=%s error: %v", id, me, r.URL.Path, r.RemoteAddr, errExec)
 
 		sendResponse(w, 500, exitStatus, out, errExec.Error(), sendYaml, id)
 		return
@@ -138,11 +144,13 @@ func serveAPIv1Exec(w http.ResponseWriter, r *http.Request, app *server, id uint
 }
 
 func sendResponse(w http.ResponseWriter, HTTPStatus int, exitStatus int, output []byte, execError string, sendYaml bool, id uint64) {
-	var result response
+	var result api.ExecV1ResponseBody
 	result.HTTPStatus = HTTPStatus
 	result.ExitStatus = exitStatus
 	result.Output = string(output)
 	result.Error = execError
+
+	//log.Printf("%d sendResponse: output: %s", id, string(output))
 
 	if sendYaml {
 		buf, errMarshal := yaml.Marshal(&result)

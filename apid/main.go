@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"runtime"
 	"sync"
+
+	"github.com/udhos/apishell/api"
 )
 
 const (
@@ -52,7 +54,7 @@ func main() {
 	registerStatic(&app, staticPath, staticDir)
 
 	registerAPI(&app, "/", serveRoot)
-	registerAPI(&app, "/api/v1/exec/", serveAPIv1Exec)
+	registerAPI(&app, api.ExecV1Path, serveAPIExecV1)
 
 	if err := listenAndServeTLS(listen, cert, key, nil); err != nil {
 		log.Fatalf("ListenAndServeTLS: %s: %v", listen, err)
