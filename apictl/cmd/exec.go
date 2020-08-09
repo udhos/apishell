@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -107,7 +108,24 @@ apictl exec -- bash -c "echo -n 12345 | wc"
 		fmt.Printf("ExitStatus: %d\n", result.ExitStatus)
 		fmt.Printf("Error: %s\n", result.Error)
 		fmt.Println("Output:")
-		fmt.Print(result.Output)
+
+		var output string
+
+		if strings.HasPrefix(result.Output, api.PrefixBase64) {
+			// prefixed with base64: encoded
+			suffix := result.Output[len(api.PrefixBase64):]
+			o, errDecode := base64.StdEncoding.DecodeString(suffix)
+			if errDecode != nil {
+				fmt.Printf("decode base64: %v", errDecode)
+				return
+			}
+			output = string(o)
+		} else {
+			// not encoded
+			output = result.Output
+		}
+
+		fmt.Print(output)
 	},
 }
 

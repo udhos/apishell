@@ -144,7 +144,7 @@ func sendResponse(w http.ResponseWriter, HTTPStatus int, exitStatus int, output 
 	var result api.ExecV1ResponseBody
 	result.HTTPStatus = HTTPStatus
 	result.ExitStatus = exitStatus
-	result.Output = string(output)
+	result.Output = api.PrefixBase64 + base64.StdEncoding.EncodeToString([]byte(output))
 	result.Error = execError
 
 	//log.Printf("%d sendResponse: output: %s", id, string(output))
