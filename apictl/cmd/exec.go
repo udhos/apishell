@@ -41,6 +41,11 @@ apictl exec -- bash -c "echo -n 12345 | wc"
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 
+		errlog := log.New(os.Stderr, "", 0)
+
+		url := "https://localhost:8080" + api.ExecV1Path
+		errlog.Printf("apid: %s", url)
+
 		var body api.ExecV1RequestBody
 		body.Args = args
 
@@ -48,7 +53,7 @@ apictl exec -- bash -c "echo -n 12345 | wc"
 			if execStdin[0] == '@' {
 				data, errRead := ioutil.ReadFile(execStdin[1:])
 				if errRead != nil {
-					fmt.Printf("stdin: %s: %v\n", execStdin, errRead)
+					errlog.Printf("stdin: %s: %v", execStdin, errRead)
 					return
 				}
 				body.Stdin = api.PrefixBase64 + base64.StdEncoding.EncodeToString(data)
@@ -61,53 +66,52 @@ apictl exec -- bash -c "echo -n 12345 | wc"
 
 		encoder := json.NewEncoder(&buf)
 		if errEnc := encoder.Encode(&body); errEnc != nil {
-			fmt.Printf("encode json: %v\n", errEnc)
+			errlog.Printf("encode json: %v", errEnc)
 			return
 		}
-
-		//fmt.Printf("request body: %s\n", buf.String())
 
 		user := "admin"
 		pass := "admin"
-		url := "https://localhost:8080" + api.ExecV1Path
 		req, errReq := http.NewRequest("POST", url, &buf)
 		if errReq != nil {
-			fmt.Printf("request: %s: %v\n", url, errReq)
+			errlog.Printf("request: %s: %v", url, errReq)
 			return
 		}
 		req.SetBasicAuth(user, pass)
-		c := newHTTPClient(true)
+		tlsInsecureSkipVerify := true
+		errlog.Printf("newHTTPClient: tlsInsecureSkipVerify=%v", tlsInsecureSkipVerify)
+		c := newHTTPClient(tlsInsecureSkipVerify)
 		resp, errPost := c.Do(req)
 		if errPost != nil {
-			fmt.Printf("post: %s: %v\n", url, errPost)
+			errlog.Printf("post: %s: %v", url, errPost)
 			return
 		}
 		if resp.StatusCode != 200 {
-			fmt.Printf("StatusCode: %d\n", resp.StatusCode)
-			fmt.Printf("Status: %s\n", resp.Status)
+			errlog.Printf("StatusCode: %d", resp.StatusCode)
+			errlog.Printf("Status: %s", resp.Status)
 			return
 		}
 
 		respBody, errBody := ioutil.ReadAll(resp.Body)
 		if errBody != nil {
-			fmt.Printf("body: %v\n", errBody)
+			errlog.Printf("body: %v", errBody)
 			return
 		}
 
-		fmt.Fprintf(os.Stderr, "Body Length: %d\n", len(respBody))
+		errlog.Printf("Body Length: %d", len(respBody))
 
 		var result api.ExecV1ResponseBody
 
 		if errUnmarshal := yaml.Unmarshal(respBody, &result); errUnmarshal != nil {
-			fmt.Printf("unmarshaml yaml: %v\n", errUnmarshal)
+			errlog.Printf("unmarshaml yaml: %v", errUnmarshal)
 			return
 		}
 
 		//fmt.Printf("result: %v\n", result)
 
-		fmt.Fprintf(os.Stderr, "HTTPStatus: %d\n", result.HTTPStatus)
-		fmt.Fprintf(os.Stderr, "ExitStatus: %d\n", result.ExitStatus)
-		fmt.Fprintf(os.Stderr, "Error: %s\n", result.Error)
+		errlog.Printf("HTTPStatus: %d", result.HTTPStatus)
+		errlog.Printf("ExitStatus: %d", result.ExitStatus)
+		errlog.Printf("Error: [%s]", result.Error)
 
 		var output string
 
@@ -116,7 +120,7 @@ apictl exec -- bash -c "echo -n 12345 | wc"
 			suffix := result.Output[len(api.PrefixBase64):]
 			o, errDecode := base64.StdEncoding.DecodeString(suffix)
 			if errDecode != nil {
-				fmt.Printf("decode base64: %v", errDecode)
+				errlog.Printf("decode base64: %v", errDecode)
 				return
 			}
 			output = string(o)
@@ -130,7 +134,6 @@ apictl exec -- bash -c "echo -n 12345 | wc"
 }
 
 func newHTTPClient(tlsInsecureSkipVerify bool) http.Client {
-	log.Printf("newHTTPClient: tlsInsecureSkipVerify=%v", tlsInsecureSkipVerify)
 	tlsConfig := &tls.Config{
 		InsecureSkipVerify: tlsInsecureSkipVerify,
 	}
