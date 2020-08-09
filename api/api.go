@@ -1,0 +1,21 @@
+package api
+
+// ExecV1Path defines path for ExecV1 API.
+const ExecV1Path = "/api/exec/v1/"
+
+// PrefixBase64 prefixes base64-encoded data.
+const PrefixBase64 = "base64:"
+
+// ExecV1RequestBody defines request body for ExecV1.
+type ExecV1RequestBody struct {
+	Stdin string   `yaml:"Stdin"`
+	Args  []string `yaml:"Args"`
+}
+
+// ExecV1ResponseBody defines response body for ExecV1.
+type ExecV1ResponseBody struct {
+	HTTPStatus int    `yaml:"HTTPStatus"`
+	ExitStatus int    `yaml:"ExitStatus"`
+	Output     string `yaml:"Output"`
+	Error      string `yaml:"Error"`
+}
