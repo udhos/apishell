@@ -9,7 +9,7 @@ import (
 // completionCmd represents the completion command
 var completionCmd = &cobra.Command{
 	Use:   "completion [bash|zsh|fish|powershell]",
-	Short: "Generate completion scrip.",
+	Short: "Generate completion script.",
 	Long: `To load completions:
 
 	Bash:
