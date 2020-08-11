@@ -22,7 +22,7 @@ import (
 
 // execCmd represents the exec command
 var execCmd = &cobra.Command{
-	Use:   "exec",
+	Use:   "exec [remote command]",
 	Short: "Execute a command on apid, the api shell server.",
 	Long: `Execute a command on apid, the api shell server.
 
