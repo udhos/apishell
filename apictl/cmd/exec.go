@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
 
 	"github.com/udhos/apishell/api"
@@ -39,12 +40,14 @@ apictl exec -- ls -la
 
 apictl exec -- bash -c "echo -n 12345 | wc"
 `,
+	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 
 		errlog := log.New(os.Stderr, "", 0)
 
-		host := "localhost:8080"
-		errlog.Printf("apid host: %s", host)
+		host := viper.GetString("server")
+
+		errlog.Printf("apid server host: %s", host)
 
 		url := "https://" + host + api.ExecV1Path
 		errlog.Printf("exec url: %s", url)

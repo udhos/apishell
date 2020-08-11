@@ -1,23 +1,27 @@
 package cmd
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // configCmd represents the config command
 var configCmd = &cobra.Command{
 	Use:   "config",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "Save settings in config file.",
+	Long: `Save settings in config file.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+Example:
+
+apictl -s 127.0.0.1:8080 config
+`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("config called")
+		for k, v := range viper.AllSettings() {
+			log.Printf("viper: %s = %v", k, v)
+		}
+		viper.WriteConfig()
 	},
 }
 
