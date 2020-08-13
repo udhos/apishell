@@ -1,7 +1,10 @@
 package api
 
 // ExecV1Path defines path for ExecV1 API.
-const ExecV1Path = "/api/exec/v1/"
+const (
+	ExecV1Path   = "/api/exec/v1/"
+	AttachV1Path = "/api/attach/v1/"
+)
 
 // PrefixBase64 prefixes base64-encoded data.
 const PrefixBase64 = "base64:"

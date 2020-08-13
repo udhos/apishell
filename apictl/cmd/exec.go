@@ -46,7 +46,6 @@ apictl exec -- bash -c "echo -n 12345 | wc"
 		errlog := log.New(os.Stderr, "", 0)
 
 		host := viper.GetString("server")
-
 		errlog.Printf("apid server host: %s", host)
 
 		url := "https://" + host + api.ExecV1Path

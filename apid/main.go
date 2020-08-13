@@ -55,6 +55,7 @@ func main() {
 
 	registerAPI(&app, "/", serveRoot)
 	registerAPI(&app, api.ExecV1Path, serveAPIExecV1)
+	registerAPI(&app, api.AttachV1Path, serveAPIAttachV1)
 
 	if err := listenAndServeTLS(listen, cert, key, nil); err != nil {
 		log.Fatalf("ListenAndServeTLS: %s: %v", listen, err)
