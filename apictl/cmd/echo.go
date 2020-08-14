@@ -3,7 +3,6 @@ package cmd
 import (
 	"crypto/tls"
 	"encoding/base64"
-	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -13,32 +12,29 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-
 	"github.com/udhos/apishell/api"
 )
 
-// attachCmd represents the attach command
-var attachCmd = &cobra.Command{
-	Use:   "attach [remote command]",
-	Short: "Execute a command on apid, the api shell server.",
-	Long: `Execute a command on apid, the api shell server.
+// echoCmd represents the echo command
+var echoCmd = &cobra.Command{
+	Use:   "echo [remote command]",
+	Short: "Execute echo on apid, the shell server.",
+	Long: `Execute echo on apid, the api shell server.
 
-apictl attach [--stdin string|@file] cmd arg1..argN
+apictl echo
 
 Example:
 
-apictl attach cat
+apictl echo
 `,
-	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("attach called")
 
 		errlog := log.New(os.Stderr, "", 0)
 
 		host := viper.GetString("server")
 		errlog.Printf("apid server host: %s", host)
 
-		u := url.URL{Scheme: "wss", Host: host, Path: api.AttachV1Path}
+		u := url.URL{Scheme: "wss", Host: host, Path: api.EchoV1Path}
 		log.Printf("connecting to %s", u.String())
 
 		user := "admin"
@@ -94,15 +90,15 @@ apictl attach cat
 }
 
 func init() {
-	rootCmd.AddCommand(attachCmd)
+	rootCmd.AddCommand(echoCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// attachCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// echoCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// attachCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// echoCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

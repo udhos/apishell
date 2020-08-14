@@ -4,6 +4,7 @@ package api
 const (
 	ExecV1Path   = "/api/exec/v1/"
 	AttachV1Path = "/api/attach/v1/"
+	EchoV1Path   = "/api/echo/v1/"
 )
 
 // PrefixBase64 prefixes base64-encoded data.

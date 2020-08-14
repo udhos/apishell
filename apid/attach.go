@@ -3,11 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
-
-	"github.com/gorilla/websocket"
 )
-
-var upgrader = websocket.Upgrader{} // use default options
 
 func serveAPIAttachV1(w http.ResponseWriter, r *http.Request, app *server, id uint64) {
 
