@@ -3,6 +3,7 @@ package cmd
 import (
 	"crypto/tls"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -60,6 +61,21 @@ apictl attach cat
 			log.Fatal("dial:", err)
 		}
 		defer c.Close()
+
+		var message api.AttachV1Message
+		message.Args = args
+
+		buf, errMarshal := json.Marshal(&message)
+		if errMarshal != nil {
+			errlog.Printf("json marshal: %v", errMarshal)
+			return
+		}
+
+		errWrite := c.WriteMessage(websocket.TextMessage, buf)
+		if errWrite != nil {
+			errlog.Printf("websocket write: %v", errWrite)
+			return
+		}
 
 		done := make(chan struct{})
 

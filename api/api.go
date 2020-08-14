@@ -23,3 +23,8 @@ type ExecV1ResponseBody struct {
 	Output     string `yaml:"Output"`
 	Error      string `yaml:"Error"`
 }
+
+// AttachV1Message defines message for AttachV1.
+type AttachV1Message struct {
+	Args []string `yaml:"Args"`
+}
