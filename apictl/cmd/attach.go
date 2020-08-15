@@ -28,7 +28,7 @@ apictl attach [--stdin string|@file] cmd arg1..argN
 
 Example:
 
-apictl attach cat
+apictl attach -- bash -i
 `,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -65,11 +65,15 @@ apictl attach cat
 		var message api.AttachV1Message
 		message.Args = args
 
+		errlog.Printf("websocket message: %v", message)
+
 		buf, errMarshal := json.Marshal(&message)
 		if errMarshal != nil {
 			errlog.Printf("json marshal: %v", errMarshal)
 			return
 		}
+
+		errlog.Printf("websocket message: %s", string(buf))
 
 		errWrite := c.WriteMessage(websocket.TextMessage, buf)
 		if errWrite != nil {
@@ -77,35 +81,39 @@ apictl attach cat
 			return
 		}
 
-		done := make(chan struct{})
+		api.WebsocketSpawn(c, os.Stdin, os.Stdout)
 
-		go func() {
-			defer close(done)
+		/*
+			done := make(chan struct{})
+
+			go func() {
+				defer close(done)
+				for {
+					mt, message, err := c.ReadMessage()
+					if err != nil {
+						log.Println("read:", err)
+						return
+					}
+					log.Printf("recv: mt=%d %s", mt, message)
+				}
+			}()
+
+			ticker := time.NewTicker(time.Second)
+			defer ticker.Stop()
+
 			for {
-				mt, message, err := c.ReadMessage()
-				if err != nil {
-					log.Println("read:", err)
+				select {
+				case <-done:
 					return
-				}
-				log.Printf("recv: mt=%d %s", mt, message)
-			}
-		}()
-
-		ticker := time.NewTicker(time.Second)
-		defer ticker.Stop()
-
-		for {
-			select {
-			case <-done:
-				return
-			case t := <-ticker.C:
-				err := c.WriteMessage(websocket.TextMessage, []byte(t.String()))
-				if err != nil {
-					log.Println("write:", err)
-					return
+				case t := <-ticker.C:
+					err := c.WriteMessage(websocket.TextMessage, []byte(t.String()))
+					if err != nil {
+						log.Println("write:", err)
+						return
+					}
 				}
 			}
-		}
+		*/
 	},
 }
 
