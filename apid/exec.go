@@ -103,7 +103,7 @@ func sendResponse(w http.ResponseWriter, HTTPStatus int, exitStatus int, output 
 	var result api.ExecV1ResponseBody
 	result.HTTPStatus = HTTPStatus
 	result.ExitStatus = exitStatus
-	result.Output = api.PrefixBase64 + base64.StdEncoding.EncodeToString([]byte(output))
+	result.Output = api.PrefixBase64 + base64.StdEncoding.EncodeToString(output)
 	result.Error = execError
 
 	//log.Printf("%d sendResponse: output: %s", id, string(output))
@@ -113,8 +113,7 @@ func sendResponse(w http.ResponseWriter, HTTPStatus int, exitStatus int, output 
 		if errMarshal != nil {
 			log.Printf("%d %s yaml.Marshal: %v", id, me, errMarshal)
 		}
-		w.Header().Set("Content-Type", "application/x-yaml")
-		httpError(w, string(buf), HTTPStatus)
+		httpError(w, string(buf), HTTPStatus, id, "application/x-yaml")
 		return
 	}
 
@@ -122,11 +121,7 @@ func sendResponse(w http.ResponseWriter, HTTPStatus int, exitStatus int, output 
 	if errMarshal != nil {
 		log.Printf("%d %s json.Marshal: %v", id, me, errMarshal)
 	}
-	w.Header().Set("Content-Type", "application/json")
-
-	log.Printf("%d %s writing response bodyLength=%d...", id, me, len(buf))
-	httpError(w, string(buf), HTTPStatus)
-	log.Printf("%d %s writing response bodyLength=%d...done", id, me, len(buf))
+	httpError(w, string(buf), HTTPStatus, id, "application/json")
 }
 
 // httpError does not reset Content-Type, http.Error does.
@@ -134,7 +129,10 @@ func sendResponse(w http.ResponseWriter, HTTPStatus int, exitStatus int, output 
 // It does not otherwise end the request; the caller should ensure no further
 // writes are done to w.
 // The error message should be plain text.
-func httpError(w http.ResponseWriter, error string, code int) {
+func httpError(w http.ResponseWriter, str string, code int, id uint64, contentType string) {
+	w.Header().Set("Content-Type", contentType)
 	w.WriteHeader(code)
-	fmt.Fprintln(w, error)
+	log.Printf("%d writing %s response bodyLength=%d...", id, contentType, len(str))
+	fmt.Fprintln(w, str)
+	log.Printf("%d writing %s response bodyLength=%d...done", id, contentType, len(str))
 }
